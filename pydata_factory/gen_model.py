@@ -1,9 +1,9 @@
 """
 Module for class model generation.
 """
-import os
-
 import pandas as pd
+
+from pydata_factory.utils import get_class_name
 
 ATTRIBUTE_TMPL = "    {name}: {type} = {value}"
 
@@ -40,12 +40,7 @@ def create_model(data_path: str):
     ----------
     data_path: str
     """
-    name = data_path.split(os.sep)[-1].replace(".parquet", "")
-
-    if name.endswith("ies"):
-        name = name[:-3] + "y"
-    elif name.endswith("s"):
-        name = name[:-1]
+    name = get_class_name(data_path)
 
     df = pd.read_parquet(data_path)
 
