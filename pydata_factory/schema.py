@@ -39,6 +39,12 @@ def get_schema(df, name):
     return schema
 
 
+def load_schema(path: str):
+    with open(path, "r") as f:
+        content = f.read()
+        return json.loads(content)
+
+
 def create_data_frame_from_schema(schema):
     df = pd.DataFrame({}, columns=schema["attributes"].keys())
     dtypes = {k: schema["attributes"][k]["dtype"] for k in df.keys()}

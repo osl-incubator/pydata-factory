@@ -13,23 +13,23 @@ from faker import Faker
 
 from pydata_factory.class_factory import create_factory
 from pydata_factory.class_model import create_model
-from pydata_factory.utils import get_attr_name, get_class_name
+from pydata_factory.schema import create_data_frame_from_schema
 
 Faker.seed(42)
 factory.random.reseed_random(42)
 
 
-def gen_data(origin: str, target: str, rows: int = None):
+def gen_data(schema: dict, target: str, rows: int = None) -> None:
     """
     Generate fake data from a dataset file.
     """
 
-    df = pd.read_parquet(origin)
+    df = create_data_frame_from_schema(schema)
 
-    name = get_class_name(origin).title()
+    name = schema["name"]
 
-    model_script = create_model(origin)
-    factory_script = create_factory(origin)
+    model_script = create_model(schema)
+    factory_script = create_factory(schema)
 
     script = model_script + factory_script
 
@@ -61,8 +61,12 @@ def gen_data(origin: str, target: str, rows: int = None):
     sys.path.append(tmp_dir)
     lib_tmp = importlib.import_module(script_name)
 
-    if rows is None:
-        rows = df.shape[0]
+    if not rows:
+        rows = 1
+        for k, v in schema["attributes"].items():
+            if "count" not in v:
+                continue
+            rows = int(max(rows, v["count"]))
 
     results = []
 
@@ -70,7 +74,5 @@ def gen_data(origin: str, target: str, rows: int = None):
         obj = getattr(lib_tmp, f"{name}Factory")()
         results.append(obj.__dict__)
 
-    df = pd.read_parquet(origin)[0:0]
-    df.rename(columns={c: get_attr_name(c) for c in df.columns}, inplace=True)
     df = pd.concat([df, pd.DataFrame(results)])
     df.to_parquet(target)
