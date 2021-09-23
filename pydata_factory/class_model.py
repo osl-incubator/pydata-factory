@@ -1,10 +1,6 @@
 """
 Module for class model generation.
 """
-import pandas as pd
-
-from pydata_factory.utils import get_class_name
-
 ATTRIBUTE_TMPL = "    {name}: {type} = {value}"
 
 CLASS_TMPL = """\
@@ -32,23 +28,15 @@ default_values = {
 }
 
 
-def create_model(schema: str):
+def create_model(schema: dict):
     """
     Create a class model for the dataset path.
-
-    Parameters
-    ----------
-    data_path: str
     """
-    # todo: fix it
-    data_path = ""
-    name = get_class_name(data_path)
-
-    df = pd.read_parquet(data_path)
+    name = schema["name"]
 
     attributes = []
-    for c in df.columns:
-        t = maps_types[str(df[c].dtype)]
+    for c in schema["attributes"]:
+        t = maps_types[str(schema["attributes"][c]["dtype"])]
         v = default_values[t]
 
         c = c.replace(" ", "_").lower()
@@ -58,11 +46,9 @@ def create_model(schema: str):
 
         if c.endswith("_id"):
             t = c.replace("_id", "").title().replace("_", "")
-            t += f"{name.title()}Model"
+            t += f"{name}Model"
             v = "None"
 
         attributes.append(ATTRIBUTE_TMPL.format(name=c, type=t, value=v))
 
-    return CLASS_TMPL.format(
-        name=name.title().replace("_", ""), attributes="\n".join(attributes)
-    )
+    return CLASS_TMPL.format(name=name, attributes="\n".join(attributes))

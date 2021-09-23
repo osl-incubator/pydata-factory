@@ -1,10 +1,6 @@
 """
 Module for class factory generation.
 """
-import pandas as pd
-
-from pydata_factory.utils import get_class_name
-
 ATTRIBUTE_FACTORY_TMPL = "    {name} = {value}"
 
 CLASS_FACTORY_TMPL = """\
@@ -29,25 +25,18 @@ maps_factory_types = {
 }
 
 
-def create_factory(data_path: str):
+def create_factory(schema: dict) -> str:
     """
     Create a class factory for the dataset path.
-
-    Parameters
-    ----------
-    data_path: str
     """
-    name = get_class_name(data_path)
+    name = schema["name"]
 
-    name_formatted = name.title().replace("_", "")
-
-    model_class = f"{name_formatted}Model"
-
-    df = pd.read_parquet(data_path)
+    model_class = f"{name}Model"
 
     attributes = []
-    for c in df.columns:
-        t = maps_factory_types[str(df[c].dtype)]
+    for c in schema["attributes"].keys():
+        col = schema["attributes"][c]
+        t = maps_factory_types[str(col["dtype"])]
 
         v = "None"
 
@@ -64,8 +53,8 @@ def create_factory(data_path: str):
             t += "Factory"
             v = "None"
         elif t == "int":
-            v_min = df[c].min()
-            v_max = df[c].max()
+            v_min = col["min"]
+            v_max = col["max"]
 
             if v_min == v_max:
                 v = str(v_min)
@@ -75,8 +64,8 @@ def create_factory(data_path: str):
                     f"random.randint({v_min}, {v_max}))"
                 )
         elif t == "float":
-            v_min = int(df[c].min())
-            v_max = int(df[c].max())
+            v_min = int(col["min"])
+            v_max = int(col["max"])
 
             if v_min == v_max:
                 v = str(v_min)
@@ -87,10 +76,9 @@ def create_factory(data_path: str):
                 )
 
         elif t == "str":
-            threshold = df.shape[0] / 10
-            uniques = df[c].unique()
-            if len(uniques) < threshold:
-                options = tuple([(v, v) for v in uniques])
+
+            if "categories" in col:
+                options = tuple([(v, v) for v in col["categories"]])
                 v = (
                     "factory.Iterator({options}, " "getter=lambda c: c[0])"
                 ).format(options=options)
@@ -102,7 +90,7 @@ def create_factory(data_path: str):
         attributes.append(ATTRIBUTE_FACTORY_TMPL.format(name=c, value=v))
 
     return CLASS_FACTORY_TMPL.format(
-        name=name_formatted,
+        name=name,
         attributes="\n".join(attributes),
         model_class=model_class,
     )

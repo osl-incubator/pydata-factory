@@ -24,18 +24,3 @@ Create data for testing from data files.
 
 * Free software: MIT license
 * Documentation: https://pydata-factory.readthedocs.io.
-
-
-Features
---------
-
-* TODO
-
-Credits
--------
-
-This package was created with Cookiecutter_ and the `pyOpenSci/cookiecutter-pyopensci`_ project template, based off `audreyr/cookiecutter-pypackage`_.
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`pyOpenSci/cookiecutter-pyopensci`: https://github.com/pyOpenSci/cookiecutter-pyopensci
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage

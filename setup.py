@@ -19,6 +19,7 @@ dev_requirements = []
 dev_requirements += requirements
 
 setup(
+    name='pydata-factory',
     author="Ivan Ogasawara",
     author_email='ivan.ogasawara@gmail.com',
     classifiers=[
@@ -38,12 +39,12 @@ setup(
     long_description=readme + '\n\n' + history,
     include_package_data=True,
     keywords='pydata_factory',
-    name='pydata_factory',
     packages=find_packages(include=['pydata_factory']),
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/osl-incubator/pydata_factory',
-    version='0.1.0',
+    setup_requires=['setuptools_scm'],
+    use_scm_version=True,
     zip_safe=False,
 )
