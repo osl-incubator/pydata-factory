@@ -32,7 +32,7 @@ default_values = {
 }
 
 
-def create_model(data_path: str):
+def create_model(schema: str):
     """
     Create a class model for the dataset path.
 
@@ -40,6 +40,8 @@ def create_model(data_path: str):
     ----------
     data_path: str
     """
+    # todo: fix it
+    data_path = ""
     name = get_class_name(data_path)
 
     df = pd.read_parquet(data_path)

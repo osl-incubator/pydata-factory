@@ -1,7 +1,7 @@
 """Tests for `pydata_factory` package."""
 from pathlib import Path
 
-from pydata_factory.gen_model import create_model
+from pydata_factory.class_model import create_model
 
 
 def test_create_model():
