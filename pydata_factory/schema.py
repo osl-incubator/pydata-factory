@@ -6,7 +6,15 @@ import os
 
 import pandas as pd
 
-from pydata_factory.utils import get_attr_name, get_class_name
+from pydata_factory.utils import (
+    get_attr_name,
+    get_class_name,
+    normalize_datetime,
+)
+
+
+def cast_or_null(value, func):
+    return None if pd.isnull(value) else func(value)
 
 
 def get_schema(df, name):
@@ -23,19 +31,23 @@ def get_schema(df, name):
 
         if dtype.startswith("int") or dtype.startswith("float"):
             f = int if dtype.startswith("int") else float
-            attrs[k_new]["min"] = f(df[k].min())
-            attrs[k_new]["max"] = f(df[k].max())
-            attrs[k_new]["mean"] = f(df[k].mean())
-            attrs[k_new]["std"] = f(df[k].std())
-            attrs[k_new]["count"] = f(df[k].count())
+            attrs[k_new]["min"] = cast_or_null(df[k].min(), f)
+            attrs[k_new]["max"] = cast_or_null(df[k].max(), f)
+            attrs[k_new]["mean"] = cast_or_null(df[k].mean(), f)
+            attrs[k_new]["std"] = cast_or_null(df[k].std(), f)
+            attrs[k_new]["count"] = cast_or_null(df[k].count(), f)
         elif dtype.startswith("date"):
-            attrs[k_new]["min"] = df[k].min()
-            attrs[k_new]["max"] = df[k].max()
+            attrs[k_new]["min"] = normalize_datetime(df[k].min())
+            attrs[k_new]["max"] = normalize_datetime(df[k].max())
         elif dtype.startswith("object"):
             uniques = df[k].unique()
             threshold = df.shape[0] / 5
-            if len(uniques) <= threshold:
+            if 0 > len(uniques) <= threshold:
                 attrs[k_new]["categories"] = uniques.tolist()
+
+        for k, v in list(attrs[k_new].items()):
+            if pd.isnull(v):
+                attrs[k_new][k] = None
     return schema
 
 
