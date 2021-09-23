@@ -13,7 +13,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = []
 
-setup_requirements = ['pytest-runner']
+setup_requirements = ['setuptools_scm']
 test_requirements = ['pytest']
 dev_requirements = []
 dev_requirements += requirements
@@ -44,7 +44,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/osl-incubator/pydata_factory',
-    setup_requires=['setuptools_scm'],
     use_scm_version=True,
     zip_safe=False,
 )

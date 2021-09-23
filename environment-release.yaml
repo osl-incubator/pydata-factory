@@ -1,8 +1,8 @@
 name: pydata-factory-release
 channels:
-- conda-forge
+  - conda-forge
 dependencies:
-- python
-- twine
-- build
-- wheel
+  - python
+  - twine
+  - build
+  - wheel
