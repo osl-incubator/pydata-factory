@@ -15,6 +15,7 @@ from faker import Faker
 from pydata_factory.class_factory import create_factory
 from pydata_factory.class_model import create_model
 from pydata_factory.schema import create_data_frame_from_schema
+from pydata_factory.utils import get_class_name
 
 Faker.seed(42)
 factory.random.reseed_random(42)
@@ -72,20 +73,24 @@ def gen_data_from_schema(schema: dict, rows: int = None) -> pd.DataFrame:
     results = []
 
     for i in range(rows):
-        obj = getattr(lib_tmp, f"{name}Factory")()
+        obj = getattr(lib_tmp, f"{name.title()}Factory")()
         results.append(obj.__dict__)
 
     return pd.concat([df, pd.DataFrame(results)])
 
 
 def gen_data_from_schemas(
-    schemas: list, rows: dict = {}
+    schemas: list,
+    rows: dict = {},
+    use_foreign_key: bool = False,
+    exclude_foreign_key: list = [],
 ) -> Dict[str, pd.DataFrame]:
     """
     Generate fake data from a dataset file.
     """
 
     header = (
+        "from __future__ import annotations\n"
         "from datetime import datetime\n"
         "from dataclasses import dataclass\n"
         "import factory\n"
@@ -105,8 +110,22 @@ def gen_data_from_schemas(
     for schema in schemas:
         name = schema["name"]
 
-        model_script += create_model(schema) + "\n"
-        factory_script += create_factory(schema) + "\n"
+        model_script += (
+            create_model(
+                schema,
+                use_foreign_key=use_foreign_key,
+                exclude_foreign_key=exclude_foreign_key,
+            )
+            + "\n"
+        )
+        factory_script += (
+            create_factory(
+                schema,
+                use_foreign_key=use_foreign_key,
+                exclude_foreign_key=exclude_foreign_key,
+            )
+            + "\n"
+        )
 
         if name not in rows or not rows[name]:
             rows[name] = 1
@@ -136,10 +155,12 @@ def gen_data_from_schemas(
     for schema in schemas:
         results = []
         name = schema["name"]
+        class_name = get_class_name(name)
+
         df = create_data_frame_from_schema(schema)
 
         for i in range(rows[name]):
-            obj = getattr(lib_tmp, f"{name}Factory")()
+            obj = getattr(lib_tmp, f"{class_name}Factory")()
             results.append(obj.__dict__)
 
         dfs[name] = pd.concat([df, pd.DataFrame(results)])

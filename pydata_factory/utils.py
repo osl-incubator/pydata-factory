@@ -11,7 +11,13 @@ def get_class_name(data_path: str):
     elif name.endswith("s"):
         name = name[:-1]
 
-    return name
+    return name.title().replace("_", "")
+
+
+def get_class_name_from_path(data_path: str):
+    name = data_path.split(os.sep)[-1].replace(".parquet", "")
+
+    return get_class_name(name)
 
 
 def get_attr_name(attr_name: str):

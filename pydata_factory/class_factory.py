@@ -1,10 +1,11 @@
 """
 Module for class factory generation.
 """
+from pydata_factory.utils import get_class_name
+
 ATTRIBUTE_FACTORY_TMPL = "    {name} = {value}"
 
 CLASS_FACTORY_TMPL = """\
-@dataclass
 class {name}Factory(factory.Factory):
 
     class Meta:
@@ -25,13 +26,16 @@ maps_factory_types = {
 }
 
 
-def create_factory(schema: dict) -> str:
+def create_factory(
+    schema: dict, use_foreign_key: bool = False, exclude_foreign_key: list = []
+) -> str:
     """
     Create a class factory for the dataset path.
     """
     name = schema["name"]
+    class_name = get_class_name(name)
 
-    model_class = f"{name}Model"
+    model_class = f"{get_class_name(name)}Model"
 
     attributes = []
     for c in schema["attributes"].keys():
@@ -48,7 +52,11 @@ def create_factory(schema: dict) -> str:
             v = "factory.Faker('name')"
         elif t == "datetime":
             v = "factory.LazyAttribute(lambda o: datetime.now())"
-        elif c.endswith("_id"):
+        elif (
+            use_foreign_key
+            and c.endswith("_id")
+            and c not in exclude_foreign_key
+        ):
             t = c.replace("_id", "").title().replace("_", "")
             t += "Factory"
             v = "None"
@@ -83,14 +91,14 @@ def create_factory(schema: dict) -> str:
                     "factory.Iterator({options}, " "getter=lambda c: c[0])"
                 ).format(options=options)
             else:
-                v = ""
+                v = '""'
 
-        c = c.replace(" ", "_").lower()
+        c = c.replace(" ", "_").lower().replace("__", "_0000_")
 
         attributes.append(ATTRIBUTE_FACTORY_TMPL.format(name=c, value=v))
 
     return CLASS_FACTORY_TMPL.format(
-        name=name,
+        name=class_name,
         attributes="\n".join(attributes),
         model_class=model_class,
     )
