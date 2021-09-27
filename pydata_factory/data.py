@@ -88,7 +88,7 @@ class GenData:
                 obj = getattr(lib_tmp, f"{class_name}Factory")()
                 data = obj.__dict__
                 data = {
-                    k: v.id if isinstance(v, Model) else v
+                    k: v.id if isinstance(v, Model) else v  # type: ignore
                     for k, v in data.items()
                 }
                 results.append(data)
