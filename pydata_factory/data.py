@@ -11,7 +11,6 @@ from faker import Faker
 
 from pydata_factory.classes import GenFactory, GenModel
 from pydata_factory.schema import Schema
-from pydata_factory.utils import get_class_name
 
 Faker.seed(42)
 factory.random.reseed_random(42)
@@ -26,6 +25,11 @@ class GenData:
         """
         Generate fake data from a dataset file.
         """
+
+        tmp_dir = "/tmp/pydata_factory_classes"
+        os.makedirs(tmp_dir, exist_ok=True)
+        script_name = datetime.datetime.now().strftime("pydf_%Y%m%d_%H%M%S_%f")
+        script_path = f"{tmp_dir}/{script_name}.py"
 
         header = (
             "from __future__ import annotations\n"
@@ -50,7 +54,7 @@ class GenData:
             name = schema["name"]
 
             model_script += GenModel.generate(schema) + "\n"
-            factory_script += GenFactory.generate(schema) + "\n"
+            factory_script += GenFactory.generate(schema, script_name) + "\n"
 
             if name not in rows or not rows[name]:
                 rows[name] = 1
@@ -60,11 +64,6 @@ class GenData:
                     rows[name] = int(max(rows[name], v["count"]))
 
         script = model_script + factory_script
-
-        tmp_dir = "/tmp/pydata_factory_classes"
-        os.makedirs(tmp_dir, exist_ok=True)
-        script_name = datetime.datetime.now().strftime("pydf_%Y%m%d_%H%M%S_%f")
-        script_path = f"{tmp_dir}/{script_name}.py"
 
         with open(f"{tmp_dir}/__init__.py", "w") as f:
             f.write("")
@@ -81,7 +80,7 @@ class GenData:
             results = []
             name = schema["name"]
             original_name = schema["original-name"]
-            class_name = get_class_name(name)
+            class_name = name
 
             df = Schema.to_dataframe(schema)
 

@@ -7,7 +7,7 @@ from typing import Optional
 
 import pandas as pd
 
-from pydata_factory.config import MAPS_PANDAS_TYPES
+from pydata_factory.config import MAPS_FROM_PANDAS_TYPES, MAPS_TO_PANDAS_TYPES
 from pydata_factory.utils import (
     get_attr_name,
     get_class_name,
@@ -31,7 +31,7 @@ class Schema:
             k_new = get_attr_name(k)
             attrs[k_new] = {"store-db": k}
 
-            dtype = MAPS_PANDAS_TYPES[str(df[k].dtype)]
+            dtype = MAPS_FROM_PANDAS_TYPES[str(df[k].dtype)]
             attrs[k_new]["dtype"] = dtype
 
             if k_new.endswith("_id"):
@@ -87,7 +87,10 @@ class Schema:
     @staticmethod
     def to_dataframe(schema):
         df = pd.DataFrame({}, columns=schema["attributes"].keys())
-        dtypes = {k: schema["attributes"][k]["dtype"] for k in df.keys()}
+        dtypes = {
+            k: MAPS_TO_PANDAS_TYPES[schema["attributes"][k]["dtype"]]
+            for k in df.keys()
+        }
         return df.astype(dtypes)
 
     @staticmethod

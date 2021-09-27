@@ -30,7 +30,7 @@ class GenModel:
         Create a class model for the dataset path.
         """
         name = schema["name"]
-        class_name = get_class_name(name)
+        class_name = name
 
         attributes = []
         for c in schema["attributes"]:
@@ -47,7 +47,7 @@ class GenModel:
                 and c.endswith("_id")
                 and c not in exclude_foreign_key
             ):
-                t = get_class_name(c.replace("_id", ""))
+                t = get_class_name(c)[:-3]
                 t += "Model"
                 v = "None"
 
@@ -71,13 +71,13 @@ class GenFactory:
     )
 
     @staticmethod
-    def generate(schema: dict) -> str:
+    def generate(schema: dict, namespace: str) -> str:
         """
         Create a class factory for the dataset path.
         """
         name = schema["name"]
-        class_name = get_class_name(name)
-        model_class = f"{get_class_name(name)}Model"
+        class_name = name
+        model_class = f"{name}Model"
 
         attributes = []
         for k_attr, v_attr in schema["attributes"].items():
@@ -108,8 +108,9 @@ class GenFactory:
                 v = "factory.Sequence(lambda n: f'LastName{n}')"
 
             elif k_attr.endswith("_id") and v_attr.get("depends-on"):
+                dep = v_attr.get("depends-on").split(".")[0]
                 t = "factory.Factory"
-                v = f"factory.SubFactory({get_class_name(k_attr[:-3])}Factory)"
+                v = f"factory.SubFactory('{namespace}.{dep}Factory')"
 
             elif t == "int":
                 v_min = col.get("min", 0)
@@ -146,8 +147,8 @@ class GenFactory:
                     v = '""'
 
             elif t in ["date", "datetime"]:
-                v_min_str = str(col["min"])
-                v_max_str = str(col["max"])
+                v_min_str = str(col.get("min") or "")
+                v_max_str = str(col.get("max") or "")
 
                 dt_tmpl = "datetime.date({}, {}, {})"
 
@@ -162,8 +163,14 @@ class GenFactory:
                     v = f"FuzzyDate({dt_str})"
                 else:
                     # note: add support for FuzzyDateTime as well
-                    _v_min = [int(v) for v in v_min_str[:10].split("-")]
-                    _v_max = [int(v) for v in v_max_str[:10].split("-")]
+                    try:
+                        _v_min = [int(v) for v in v_min_str[:10].split("-")]
+                        _v_max = [int(v) for v in v_max_str[:10].split("-")]
+                    except Exception as exc:
+                        import pdb
+
+                        pdb.set_trace()
+                        print(exc)
 
                     start_date_str = dttm_tmpl.format(
                         _v_min[0], _v_min[1], _v_min[2]
