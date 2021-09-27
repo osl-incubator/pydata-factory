@@ -3,7 +3,9 @@ Module for class factory generation.
 """
 import datetime
 
-from pydata_factory.utils import get_class_name
+
+class Model:
+    ...
 
 
 class GenModel:
@@ -21,11 +23,7 @@ class GenModel:
     )
 
     @staticmethod
-    def generate(
-        schema: dict,
-        use_foreign_key: bool = False,
-        exclude_foreign_key: list = [],
-    ):
+    def generate(schema: dict):
         """
         Create a class model for the dataset path.
         """
@@ -33,26 +31,20 @@ class GenModel:
         class_name = name
 
         attributes = []
-        for c in schema["attributes"]:
-            t = schema["attributes"][c]["dtype"]
+        for k_attr, v_attr in schema["attributes"].items():
+            t = schema["attributes"][k_attr]["dtype"]
             v = GenModel.default_values[t]
 
-            c = c.replace(" ", "_").lower()
-
-            if c == "id":
+            if k_attr == "id":
                 t = "int"
 
-            if (
-                use_foreign_key
-                and c.endswith("_id")
-                and c not in exclude_foreign_key
-            ):
-                t = get_class_name(c)[:-3]
-                t += "Model"
+            if k_attr.endswith("_id") and v_attr.get("depends-on"):
+                dep = v_attr.get("depends-on").split(".")[0]
+                t = f"{dep}Model"
                 v = "None"
 
             attributes.append(
-                GenModel.ATTRIBUTE_TMPL.format(name=c, type=t, value=v)
+                GenModel.ATTRIBUTE_TMPL.format(name=k_attr, type=t, value=v)
             )
 
         return GenModel.CLASS_TMPL.format(
@@ -71,7 +63,7 @@ class GenFactory:
     )
 
     @staticmethod
-    def generate(schema: dict, namespace: str) -> str:
+    def generate(schema: dict, module: str) -> str:
         """
         Create a class factory for the dataset path.
         """
@@ -110,7 +102,7 @@ class GenFactory:
             elif k_attr.endswith("_id") and v_attr.get("depends-on"):
                 dep = v_attr.get("depends-on").split(".")[0]
                 t = "factory.Factory"
-                v = f"factory.SubFactory('{namespace}.{dep}Factory')"
+                v = f"factory.SubFactory('{module}.{dep}Factory')"
 
             elif t == "int":
                 v_min = col.get("min", 0)
@@ -163,14 +155,8 @@ class GenFactory:
                     v = f"FuzzyDate({dt_str})"
                 else:
                     # note: add support for FuzzyDateTime as well
-                    try:
-                        _v_min = [int(v) for v in v_min_str[:10].split("-")]
-                        _v_max = [int(v) for v in v_max_str[:10].split("-")]
-                    except Exception as exc:
-                        import pdb
-
-                        pdb.set_trace()
-                        print(exc)
+                    _v_min = [int(v) for v in v_min_str[:10].split("-")]
+                    _v_max = [int(v) for v in v_max_str[:10].split("-")]
 
                     start_date_str = dttm_tmpl.format(
                         _v_min[0], _v_min[1], _v_min[2]

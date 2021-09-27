@@ -3,13 +3,13 @@ import os
 import pandas as pd
 
 
-def get_class_name(name: str):
+def get_class_name(name: str, namespace: str = ""):
     if name.endswith("ies"):
         name = name[:-3] + "y"
     elif name.endswith("s"):
         name = name[:-1]
 
-    return name.title().replace("_", "")
+    return name.title().replace("_", "") + namespace.title()
 
 
 def get_class_name_from_path(data_path: str):

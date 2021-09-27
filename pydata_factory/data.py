@@ -9,7 +9,7 @@ import factory.random
 import pandas as pd
 from faker import Faker
 
-from pydata_factory.classes import GenFactory, GenModel
+from pydata_factory.classes import GenFactory, GenModel, Model
 from pydata_factory.schema import Schema
 
 Faker.seed(42)
@@ -40,11 +40,10 @@ class GenData:
             "import factory.random\n"
             "from factory.fuzzy import FuzzyDate, FuzzyDateTime\n"
             "from faker import Faker\n\n"
+            "from pydata_factory.classes import Model\n\n"
             "Faker.seed(42)\n"
             "\n"
             "factory.random.reseed_random(42)\n\n\n"
-            "class Model:\n"
-            "    ...\n\n\n"
         )
 
         model_script = ""
@@ -52,6 +51,7 @@ class GenData:
 
         for schema in schemas:
             name = schema["name"]
+            namespace = schema.get("namespace", "")
 
             model_script += GenModel.generate(schema) + "\n"
             factory_script += GenFactory.generate(schema, script_name) + "\n"
@@ -86,8 +86,18 @@ class GenData:
 
             for i in range(rows[name]):
                 obj = getattr(lib_tmp, f"{class_name}Factory")()
-                results.append(obj.__dict__)
+                data = obj.__dict__
+                data = {
+                    k: v.id if isinstance(v, Model) else v
+                    for k, v in data.items()
+                }
+                results.append(data)
 
-            dfs[original_name] = pd.concat([df, pd.DataFrame(results)])
+            qualified_name = (
+                original_name
+                if not namespace
+                else f"{namespace}.{original_name}"
+            )
+            dfs[qualified_name] = pd.concat([df, pd.DataFrame(results)])
 
         return dfs

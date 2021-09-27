@@ -11,7 +11,29 @@ def test_schema_from_parquet(filename):
     """Test the creation of a new model from a parquet file."""
     origin = Path(__file__).parent / "data" / "original" / filename
     target_dir = Path(__file__).parent / "data" / "schemas"
-    Schema.from_parquet(str(origin), str(target_dir))
+    schema = Schema.from_parquet(str(origin), str(target_dir))
+
+    assert isinstance(schema, dict)
+    assert "name" in schema
+    assert "original-name" in schema
+    assert "attributes" in schema
+
+
+@pytest.mark.parametrize("filename", ["fb2021.parquet", "msft2021.parquet"])
+def test_schema_from_parquet_with_namespace(filename):
+    """Test the creation of a new model from a parquet file."""
+    origin = Path(__file__).parent / "data" / "original" / filename
+    target_dir = Path(__file__).parent / "data" / "schemas"
+
+    namespace = "pydf"
+
+    schema = Schema.from_parquet(
+        str(origin), str(target_dir), namespace=namespace
+    )
+
+    name = f"{filename.split('.')[0].title()}{namespace.title()}"
+
+    assert schema["name"] == name
 
 
 def test_schemas_tasks():

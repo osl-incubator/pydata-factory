@@ -21,9 +21,13 @@ def cast_or_null(value, func):
 
 class Schema:
     @staticmethod
-    def get_schema(df, original_name):
-        name = get_class_name(original_name)
-        schema = {"name": name, "original-name": original_name}
+    def get_schema(df, original_name: str, namespace: str = ""):
+        name = get_class_name(original_name, namespace)
+        schema = {
+            "name": name,
+            "original-name": original_name,
+            "namespace": namespace,
+        }
         schema["attributes"] = {}
 
         attrs = schema["attributes"]
@@ -36,7 +40,7 @@ class Schema:
 
             if k_new.endswith("_id"):
                 # NOTE: it can be override using a config-extra file
-                dep_name = get_class_name(k_new[:-3])
+                dep_name = get_class_name(k_new[:-3], namespace)
                 attrs[k_new]["depends-on"] = f"{dep_name}.id"
 
             if dtype in ['int', 'float']:
@@ -94,7 +98,9 @@ class Schema:
         return df.astype(dtypes)
 
     @staticmethod
-    def from_parquet(origin: str, target_dir: str, original_name=None) -> None:
+    def from_parquet(
+        origin: str, target_dir: str, namespace: str = ""
+    ) -> dict:
         """
         Create a empty file just with the dataset schema.
         """
@@ -104,14 +110,15 @@ class Schema:
 
         target_file = f"{target_dir}/{filename}.json"
 
-        if original_name is None:
-            original_name = filename
+        original_name = filename
 
         df = pd.read_parquet(origin)
-        schema = Schema.get_schema(df, original_name)
+        schema = Schema.get_schema(df, original_name, namespace)
 
         with open(target_file, "w") as f:
             json.dump(schema, fp=f, indent=2)
+
+        return schema
 
     @staticmethod
     def get_map_store_attributes(schema: dict) -> dict:
