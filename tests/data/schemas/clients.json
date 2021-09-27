@@ -1,0 +1,35 @@
+{
+  "name": "Client",
+  "original-name": "clients",
+  "attributes": {
+    "id": {
+      "store-name": "id",
+      "dtype": "int",
+      "min": 1,
+      "count": 10
+    },
+    "name": {
+      "store-name": "name",
+      "dtype": "str",
+      "count": 10
+    },
+    "address": {
+      "store-name": "address",
+      "dtype": "str",
+      "count": 10
+    },
+    "client-type": {
+      "store-name": "client_type",
+      "dtype": "str",
+      "categories": ["external", "internal"],
+      "count": 10
+    },
+    "date-first-contact": {
+      "store-name": "date_first_contact",
+      "dtype": "datetime",
+      "min": "2000-01-01 00:00:00",
+      "max": "2021-06-31 23:59:59",
+      "count": 10
+    }
+  }
+}

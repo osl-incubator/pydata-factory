@@ -3,9 +3,11 @@ Create datasets with fake data for testing.
 """
 import json
 import os
+from typing import Optional
 
 import pandas as pd
 
+from pydata_factory.config import MAPS_PANDAS_TYPES
 from pydata_factory.utils import (
     get_attr_name,
     get_class_name,
@@ -17,67 +19,100 @@ def cast_or_null(value, func):
     return None if pd.isnull(value) else func(value)
 
 
-def get_schema(df, name):
-    schema = {"name": name}
-    schema["attributes"] = {}
+class Schema:
+    @staticmethod
+    def get_schema(df, original_name):
+        name = get_class_name(original_name)
+        schema = {"name": name, "original-name": original_name}
+        schema["attributes"] = {}
 
-    attrs = schema["attributes"]
-    for k in df.columns:
-        k_new = get_attr_name(k)
-        attrs[k_new] = {}
+        attrs = schema["attributes"]
+        for k in df.columns:
+            k_new = get_attr_name(k)
+            attrs[k_new] = {"store-db": k}
 
-        dtype = str(df[k].dtype)
-        attrs[k_new]["dtype"] = dtype
+            dtype = MAPS_PANDAS_TYPES[str(df[k].dtype)]
+            attrs[k_new]["dtype"] = dtype
 
-        if dtype.startswith("int") or dtype.startswith("float"):
-            f = int if dtype.startswith("int") else float
-            attrs[k_new]["min"] = cast_or_null(df[k].min(), f)
-            attrs[k_new]["max"] = cast_or_null(df[k].max(), f)
-            attrs[k_new]["mean"] = cast_or_null(df[k].mean(), f)
-            attrs[k_new]["std"] = cast_or_null(df[k].std(), f)
-            attrs[k_new]["count"] = cast_or_null(df[k].count(), f)
-        elif dtype.startswith("date"):
-            attrs[k_new]["min"] = normalize_datetime(df[k].min())
-            attrs[k_new]["max"] = normalize_datetime(df[k].max())
-        elif dtype.startswith("object"):
-            uniques = df[k].unique()
-            threshold = df.shape[0] / 5
-            if 0 > len(uniques) <= threshold:
-                attrs[k_new]["categories"] = uniques.tolist()
+            if k_new.endswith("_id"):
+                # NOTE: it can be override using a config-extra file
+                dep_name = get_class_name(k_new[:-3])
+                attrs[k_new]["depends-on"] = f"{dep_name}.id"
 
-        for k, v in list(attrs[k_new].items()):
-            if pd.isnull(v):
-                attrs[k_new][k] = None
-    return schema
+            if dtype in ['int', 'float']:
+                f = int if dtype.startswith("int") else float
+                attrs[k_new]["min"] = cast_or_null(df[k].min(), f)
+                attrs[k_new]["max"] = cast_or_null(df[k].max(), f)
+                attrs[k_new]["mean"] = cast_or_null(df[k].mean(), f)
+                attrs[k_new]["std"] = cast_or_null(df[k].std(), f)
+                attrs[k_new]["count"] = cast_or_null(df[k].count(), int)
+            elif dtype in ["date", "datetime"]:
+                attrs[k_new]["min"] = normalize_datetime(df[k].min())
+                attrs[k_new]["max"] = normalize_datetime(df[k].max())
+            elif dtype == "str":
+                uniques = df[k].unique()
+                threshold = df.shape[0] / 5
+                if 0 > len(uniques) <= threshold:
+                    attrs[k_new]["categories"] = uniques.tolist()
 
+            for k, v in list(attrs[k_new].items()):
+                if pd.isnull(v):
+                    attrs[k_new][k] = None
+        return schema
 
-def load_schema(path: str):
-    with open(path, "r") as f:
-        content = f.read()
-        return json.loads(content)
+    @staticmethod
+    def load_file(path: str, config_extra_file: Optional[str] = None):
 
+        config_extra = {}
 
-def create_data_frame_from_schema(schema):
-    df = pd.DataFrame({}, columns=schema["attributes"].keys())
-    dtypes = {k: schema["attributes"][k]["dtype"] for k in df.keys()}
-    return df.astype(dtypes)
+        if config_extra_file:
+            with open(config_extra_file, "r") as f:
+                content = f.read()
+                config_extra = json.loads(content)
 
+        with open(path, "r") as f:
+            content = f.read()
+            schema = json.loads(content)
 
-def create_schema(origin: str, target_dir: str, name=None):
-    """
-    Create a empty file just with the dataset schema.
-    """
-    os.makedirs(target_dir, exist_ok=True)
+        schema_name = schema["name"]
 
-    filename = origin.split(os.sep)[-1].split('.')[0]
+        if config_extra and schema_name in config_extra:
+            for k_attr, v_attr in config_extra[schema_name][
+                "attributes"
+            ].items():
+                schema["attributes"][k_attr].update(v_attr)
 
-    target_file = f"{target_dir}/{filename}.json"
+        return schema
 
-    if name is None:
-        name = get_class_name(filename)
+    @staticmethod
+    def to_dataframe(schema):
+        df = pd.DataFrame({}, columns=schema["attributes"].keys())
+        dtypes = {k: schema["attributes"][k]["dtype"] for k in df.keys()}
+        return df.astype(dtypes)
 
-    df = pd.read_parquet(origin)
-    schema = get_schema(df, name)
+    @staticmethod
+    def from_parquet(origin: str, target_dir: str, original_name=None) -> None:
+        """
+        Create a empty file just with the dataset schema.
+        """
+        os.makedirs(target_dir, exist_ok=True)
 
-    with open(target_file, "w") as f:
-        json.dump(schema, fp=f)
+        filename = origin.split(os.sep)[-1].split('.')[0]
+
+        target_file = f"{target_dir}/{filename}.json"
+
+        if original_name is None:
+            original_name = filename
+
+        df = pd.read_parquet(origin)
+        schema = Schema.get_schema(df, original_name)
+
+        with open(target_file, "w") as f:
+            json.dump(schema, fp=f, indent=2)
+
+    @staticmethod
+    def get_map_store_attributes(schema: dict) -> dict:
+        map_attr = {}
+        for k_attr, v_attr in schema["attributes"].items():
+            map_attr[k_attr] = v_attr.get("store-name", k_attr)
+        return map_attr

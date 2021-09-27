@@ -3,22 +3,22 @@ from pathlib import Path
 
 import pytest
 
-from pydata_factory.data import gen_data_from_schema, gen_data_from_schemas
-from pydata_factory.schema import load_schema
+from pydata_factory.data import GenData
+from pydata_factory.schema import Schema
 
 
 @pytest.mark.parametrize("schema_name", ["fb2021", "msft2021"])
-def test_gen_data_from_schema(schema_name):
+def test_gen_data_individually(schema_name):
     """Test the creation of a new model from a parquet file."""
     origin = Path(__file__).parent / "data" / "schemas" / f"{schema_name}.json"
 
-    schema = load_schema(origin)
-    df = gen_data_from_schema(schema)
+    schema = Schema.load_file(origin)
+    df = GenData.generate([schema])[schema["original-name"]]
 
     assert not df.empty
 
 
-def test_gen_data_from_schemas():
+def test_gen_data_batch():
     """Test the creation of a new model from a parquet file."""
     schemas = []
 
@@ -26,10 +26,10 @@ def test_gen_data_from_schemas():
         schema_path = (
             Path(__file__).parent / "data" / "schemas" / f"{schema_name}.json"
         )
-        schema = load_schema(schema_path)
+        schema = Schema.load_file(schema_path)
         schemas.append(schema)
 
-    dfs = gen_data_from_schemas(schemas)
+    dfs = GenData.generate(schemas)
 
     for k, df in dfs.items():
         assert not df.empty

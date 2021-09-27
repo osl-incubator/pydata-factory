@@ -3,14 +3,23 @@ from pathlib import Path
 
 import pytest
 
-from pydata_factory.class_factory import create_factory
-from pydata_factory.schema import load_schema
+from pydata_factory.classes import GenFactory
+from pydata_factory.schema import Schema
 
 
 @pytest.mark.parametrize("schema_name", ["fb2021", "msft2021"])
-def test_create_factory(schema_name):
+def test_create_factory_yahoo(schema_name):
     """Test the creation of a new model from a parquet file."""
     path = Path(__file__).parent / "data" / "schemas" / f"{schema_name}.json"
-    schema = load_schema(path)
-    result = create_factory(schema)
+    schema = Schema.load_file(path)
+    result = GenFactory.generate(schema)
+    assert "class" in result
+
+
+@pytest.mark.parametrize("schema_name", ["clients", "projects", "tasks"])
+def test_create_factory_tasks(schema_name):
+    """Test the creation of a new model from a parquet file."""
+    path = Path(__file__).parent / "data" / "schemas" / f"{schema_name}.json"
+    schema = Schema.load_file(path)
+    result = GenFactory.generate(schema)
     assert "class" in result

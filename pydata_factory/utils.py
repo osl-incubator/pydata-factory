@@ -3,9 +3,7 @@ import os
 import pandas as pd
 
 
-def get_class_name(data_path: str):
-    name = data_path.split(os.sep)[-1].replace(".parquet", "")
-
+def get_class_name(name: str):
     if name.endswith("ies"):
         name = name[:-3] + "y"
     elif name.endswith("s"):
