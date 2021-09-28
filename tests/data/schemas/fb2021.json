@@ -1,7 +1,12 @@
 {
   "name": "Fb2021",
   "original-name": "fb2021",
+  "namespace": "",
   "attributes": {
+    "date": {
+      "store-db": "Date",
+      "dtype": "str"
+    },
     "high": {
       "store-db": "High",
       "dtype": "float",

@@ -2,6 +2,7 @@
 from pathlib import Path
 
 import pytest
+import sqlalchemy as sqla
 
 from pydata_factory.schema import Schema
 
@@ -12,6 +13,22 @@ def test_schema_from_parquet(filename):
     origin = Path(__file__).parent / "data" / "original" / filename
     target_dir = Path(__file__).parent / "data" / "schemas"
     schema = Schema.from_parquet(str(origin), str(target_dir))
+
+    assert isinstance(schema, dict)
+    assert "name" in schema
+    assert "original-name" in schema
+    assert "attributes" in schema
+
+
+@pytest.mark.parametrize("filename", ["db.sqlite"])
+def test_schema_from_sql(filename):
+    """Test the creation of a new model from a parquet file."""
+    origin = Path(__file__).parent / "data" / "original" / filename
+    target_dir = Path(__file__).parent / "data" / "schemas"
+    engine = sqla.create_engine(f"sqlite:///{origin}")
+    schema = Schema.from_sql(
+        engine=engine, table_name="fb2021", target_dir=str(target_dir)
+    )
 
     assert isinstance(schema, dict)
     assert "name" in schema
