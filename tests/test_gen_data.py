@@ -11,23 +11,22 @@ from pydata_factory.schema import Schema
 def test_gen_data_individually(schema_name):
     """Test the creation of a new model from a parquet file."""
     origin = Path(__file__).parent / "data" / "schemas" / f"{schema_name}.json"
-
     schema = Schema.load_file(origin)
-    df = GenData.generate([schema])[schema["original-name"]]
-
+    schemas = {schema["name"]: schema}
+    df = GenData.generate(schemas)[Schema.get_qualified_name(schema)]
     assert not df.empty
 
 
 def test_gen_data_batch():
     """Test the creation of a new model from a parquet file."""
-    schemas = []
+    schemas = {}
 
     for schema_name in ["fb2021", "msft2021"]:
         schema_path = (
             Path(__file__).parent / "data" / "schemas" / f"{schema_name}.json"
         )
         schema = Schema.load_file(schema_path)
-        schemas.append(schema)
+        schemas[schema["name"]] = schema
 
     dfs = GenData.generate(schemas)
 

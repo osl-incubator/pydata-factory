@@ -6,6 +6,7 @@ import os
 from typing import Optional
 
 import pandas as pd
+import sqlalchemy as sqla
 
 from pydata_factory.config import MAPS_FROM_PANDAS_TYPES, MAPS_TO_PANDAS_TYPES
 from pydata_factory.utils import (
@@ -121,8 +122,49 @@ class Schema:
         return schema
 
     @staticmethod
+    def from_sql(
+        engine: sqla.engine.base.Engine,
+        table_name: str,
+        target_dir: str,
+        namespace: str = "",
+    ) -> dict:
+        """
+        Create a empty file just with the dataset schema.
+        """
+        os.makedirs(target_dir, exist_ok=True)
+
+        target_file = f"{target_dir}/{table_name}.json"
+
+        original_name = table_name
+
+        df = pd.read_sql(f"SELECT * FROM {table_name}", con=engine)
+        schema = Schema.get_schema(df, original_name, namespace)
+
+        with open(target_file, "w") as f:
+            json.dump(schema, fp=f, indent=2)
+
+        return schema
+
+    @staticmethod
     def get_map_store_attributes(schema: dict) -> dict:
         map_attr = {}
         for k_attr, v_attr in schema["attributes"].items():
             map_attr[k_attr] = v_attr.get("store-name", k_attr)
         return map_attr
+
+    @staticmethod
+    def get_qualified_name(schema: dict) -> str:
+        original_name = schema["original-name"]
+        namespace = schema.get("namespace", "")
+
+        return (
+            original_name if not namespace else f"{namespace}.{original_name}"
+        )
+
+    @staticmethod
+    def get_priorities(config_file: str) -> list:
+        with open(config_file, "r") as f:
+            content = f.read()
+            config = json.loads(content)
+
+        return config.get("__config__", {}).get("priorities", [])

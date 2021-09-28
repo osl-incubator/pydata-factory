@@ -3,7 +3,9 @@ channels:
   - conda-forge
 dependencies:
   - pandas
+  - psycopg2
   - pyarrow
+  - sqlalchemy
   # dev
   - pandas-datareader
   - pip
@@ -12,7 +14,6 @@ dependencies:
   - sphinx
   - twine
   - pytest
-  - pytest-runner
   - pytest-cov
   - pre-commit
   - pip:

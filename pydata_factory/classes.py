@@ -63,7 +63,7 @@ class GenFactory:
     )
 
     @staticmethod
-    def generate(schema: dict, module: str) -> str:
+    def generate(schema: dict, module: str, context_schemas: dict) -> str:
         """
         Create a class factory for the dataset path.
         """
@@ -100,9 +100,24 @@ class GenFactory:
                 v = "factory.Sequence(lambda n: f'LastName{n}')"
 
             elif k_attr.endswith("_id") and v_attr.get("depends-on"):
-                dep = v_attr.get("depends-on").split(".")[0]
                 t = "factory.Factory"
-                v = f"factory.SubFactory('{module}.{dep}Factory')"
+
+                if v_attr.get("__factory__"):
+                    v = v_attr.get("__factory__").format(module=module)
+                else:
+                    dep_class, dep_attr = v_attr.get("depends-on").split(".")
+                    dep_attr_ref = context_schemas[dep_class]["attributes"][
+                        dep_attr
+                    ]
+
+                    id_min = dep_attr_ref.get("min", 1)
+                    id_max = dep_attr_ref.get("max", 9999)
+
+                    v = (
+                        f"factory.SubFactory('{module}.{dep_class}Factory', "
+                        "id=factory.LazyAttribute(lambda obj: "
+                        f"random.randint({id_min}, {id_max})))"
+                    )
 
             elif t == "int":
                 v_min = col.get("min", 0)

@@ -19,8 +19,7 @@ factory.random.reseed_random(42)
 class GenData:
     @staticmethod
     def generate(
-        schemas: list,
-        rows: dict = {},
+        schemas: dict, rows: dict = {}, priorities: list = []
     ) -> Dict[str, pd.DataFrame]:
         """
         Generate fake data from a dataset file.
@@ -49,12 +48,14 @@ class GenData:
         model_script = ""
         factory_script = ""
 
-        for schema in schemas:
+        for k_schema, schema in schemas.items():
             name = schema["name"]
             namespace = schema.get("namespace", "")
 
             model_script += GenModel.generate(schema) + "\n"
-            factory_script += GenFactory.generate(schema, script_name) + "\n"
+            factory_script += (
+                GenFactory.generate(schema, script_name, schemas) + "\n"
+            )
 
             if name not in rows or not rows[name]:
                 rows[name] = 1
@@ -76,11 +77,16 @@ class GenData:
 
         dfs = {}
 
-        for schema in schemas:
-            results = []
+        if not priorities:
+            priorities = list(schemas.keys())
+
+        for k_schema in priorities:
+            schema = schemas[k_schema]
             name = schema["name"]
             original_name = schema["original-name"]
+            namespace = schema.get("namespace", "")
             class_name = name
+            results = []
 
             df = Schema.to_dataframe(schema)
 

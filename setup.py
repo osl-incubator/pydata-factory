@@ -11,7 +11,13 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = []
+requirements = [
+    "factory-boy",
+    "pandas",
+    "psycopg2",
+    "pyarrow",
+    "sqlalchemy",
+]
 
 setup_requirements = ['setuptools_scm']
 test_requirements = ['pytest']
