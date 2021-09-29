@@ -48,7 +48,4 @@ def test_gen_data_tasks_batch():
     dfs = GenData.generate(schemas)
 
     for k, df in dfs.items():
-        import pdb
-
-        pdb.set_trace()
         assert not df.empty

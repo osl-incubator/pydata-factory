@@ -123,7 +123,7 @@ class GenData:
                 else f"{namespace}.{original_name}"
             )
             dfs[qualified_name] = pd.concat(
-                [df, pd.DataFrame(storage[class_name])]
+                [df, pd.DataFrame(storage[class_name]).drop_duplicates()]
             )
 
         return dfs
