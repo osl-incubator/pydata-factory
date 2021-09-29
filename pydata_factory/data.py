@@ -1,6 +1,7 @@
 import datetime
 import importlib
 import os
+import random
 import sys
 from typing import Dict
 
@@ -17,6 +18,17 @@ factory.random.reseed_random(42)
 
 
 class GenData:
+    @staticmethod
+    def _get_factory_extra(schema: dict, storage: dict) -> dict:
+        extra = {}
+
+        for k_attr, v_attr in schema["attributes"].items():
+            if v_attr.get("depends-on"):
+                dep_klass, dep_attr = v_attr.get("depends-on").split(".")
+                extra[k_attr] = random.choice(storage[dep_klass])[dep_attr]
+
+        return extra
+
     @staticmethod
     def generate(
         schemas: dict, rows: dict = {}, priorities: list = []
@@ -80,30 +92,38 @@ class GenData:
         if not priorities:
             priorities = list(schemas.keys())
 
+        storage: dict = {}
+
         for k_schema in priorities:
             schema = schemas[k_schema]
             name = schema["name"]
             original_name = schema["original-name"]
             namespace = schema.get("namespace", "")
             class_name = name
-            results = []
+
+            storage[class_name] = []
 
             df = Schema.to_dataframe(schema)
 
             for i in range(rows[name]):
-                obj = getattr(lib_tmp, f"{class_name}Factory")()
+                klass = getattr(lib_tmp, f"{class_name}Factory")
+
+                obj = klass(**GenData._get_factory_extra(schema, storage))
+
                 data = obj.__dict__
                 data = {
                     k: v.id if isinstance(v, Model) else v  # type: ignore
                     for k, v in data.items()
                 }
-                results.append(data)
+                storage[class_name].append(data)
 
             qualified_name = (
                 original_name
                 if not namespace
                 else f"{namespace}.{original_name}"
             )
-            dfs[qualified_name] = pd.concat([df, pd.DataFrame(results)])
+            dfs[qualified_name] = pd.concat(
+                [df, pd.DataFrame(storage[class_name])]
+            )
 
         return dfs

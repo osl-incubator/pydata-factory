@@ -18,17 +18,17 @@
       "dtype": "str",
       "count": 10
     },
-    "client-type": {
+    "client_type": {
       "store-name": "client_type",
       "dtype": "str",
       "categories": ["external", "internal"],
       "count": 10
     },
-    "date-first-contact": {
+    "date_first_contact": {
       "store-name": "date_first_contact",
       "dtype": "datetime",
       "min": "2000-01-01 00:00:00",
-      "max": "2021-06-31 23:59:59",
+      "max": "2021-06-30 23:59:59",
       "count": 10
     }
   }

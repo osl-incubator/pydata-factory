@@ -17,7 +17,7 @@ def test_gen_data_individually(schema_name):
     assert not df.empty
 
 
-def test_gen_data_batch():
+def test_gen_data_yahoo_batch():
     """Test the creation of a new model from a parquet file."""
     schemas = {}
 
@@ -31,4 +31,24 @@ def test_gen_data_batch():
     dfs = GenData.generate(schemas)
 
     for k, df in dfs.items():
+        assert not df.empty
+
+
+def test_gen_data_tasks_batch():
+    """Test the creation of a new model from a parquet file."""
+    schemas = {}
+
+    for schema_name in ["clients", "projects"]:
+        schema_path = (
+            Path(__file__).parent / "data" / "schemas" / f"{schema_name}.json"
+        )
+        schema = Schema.load_file(schema_path)
+        schemas[schema["name"]] = schema
+
+    dfs = GenData.generate(schemas)
+
+    for k, df in dfs.items():
+        import pdb
+
+        pdb.set_trace()
         assert not df.empty

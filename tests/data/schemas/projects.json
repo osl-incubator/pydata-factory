@@ -13,27 +13,27 @@
         "dtype": "str",
         "count": 30
       },
-      "project-type": {
+      "project_type": {
         "store-name": "project_type",
         "dtype": "str",
         "categories": ["dev", "doc", "design"],
         "count": 30
       },
-      "date-start": {
+      "date_start": {
         "store-name": "date_start",
         "dtype": "datetime",
         "min": "2000-01-01 00:00:00",
-        "max": "2021-06-31 23:59:59",
+        "max": "2021-06-30 23:59:59",
         "count": 30
       },
-      "date-end": {
+      "date_end": {
         "store-name": "date_end",
         "dtype": "datetime",
         "min": "2000-01-01 00:00:00",
-        "max": "2021-06-31 23:59:59",
+        "max": "2021-06-30 23:59:59",
         "count": 30
       },
-      "client-id": {
+      "client_id": {
         "store-name": "client_id",
         "depends-on": "Client.id",
         "dtype": "int",
