@@ -14,7 +14,6 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     "factory-boy",
     "pandas",
-    "psycopg2",
     "pyarrow",
     "sqlalchemy",
 ]
