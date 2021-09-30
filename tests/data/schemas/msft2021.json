@@ -1,6 +1,7 @@
 {
-  "name": "Msft2021",
+  "name": "Msft2021Pydf",
   "original-name": "msft2021",
+  "namespace": "pydf",
   "attributes": {
     "high": {
       "store-db": "High",

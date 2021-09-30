@@ -13,34 +13,34 @@
         "dtype": "str",
         "count": 30
       },
-      "task-type": {
+      "task_type": {
         "store-name": "task_type",
         "dtype": "str",
         "categories": ["bugfix", "enhancement", "documentation", "support"],
         "count": 30
       },
-      "plan-date-start": {
+      "plan_date_start": {
         "store-name": "plan_date_start",
         "dtype": "datetime",
         "min": "2000-01-01 00:00:00",
         "max": "2021-06-31 23:59:59",
         "count": 30
       },
-      "plan-date-end": {
+      "plan_date_end": {
         "store-name": "plan_date_end",
         "dtype": "datetime",
         "min": "2000-01-01 00:00:00",
         "max": "2021-06-31 23:59:59",
         "count": 30
       },
-      "client-id": {
+      "client_id": {
         "store-name": "client_id",
         "depends-on": "Project.client_id",
         "dtype": "int",
         "min": 1,
         "count": 30
       },
-      "project-id": {
+      "project_id": {
         "store-name": "project_id",
         "depends-on": "Project.id",
         "dtype": "int",

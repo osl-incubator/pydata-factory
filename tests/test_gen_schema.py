@@ -69,12 +69,12 @@ def test_schemas_tasks():
     "schema_file, extra_config",
     [
         ("clients.json", {}),
-        ("projects.json", {"client-id": {"depends-on": "Client.id"}}),
+        ("projects.json", {"client_id": {"depends-on": "Client.id"}}),
         (
             "tasks.json",
             {
-                "client-id": {"depends-on": "Project.client-id"},
-                "project-id": {"depends-on": "Project.id"},
+                "client_id": {"depends-on": "Project.client_id"},
+                "project_id": {"depends-on": "Project.id"},
             },
         ),
     ],

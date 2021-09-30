@@ -1,12 +1,8 @@
 {
-  "name": "Fb2021",
+  "name": "Fb2021Pydf",
   "original-name": "fb2021",
-  "namespace": "",
+  "namespace": "pydf",
   "attributes": {
-    "date": {
-      "store-db": "Date",
-      "dtype": "str"
-    },
     "high": {
       "store-db": "High",
       "dtype": "float",

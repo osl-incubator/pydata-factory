@@ -17,11 +17,16 @@ def test_create_factory_yahoo(schema_name):
     assert "class" in result
 
 
-@pytest.mark.parametrize("schema_name", ["clients", "projects", "tasks"])
-def test_create_factory_tasks(schema_name):
+def test_create_factory_tasks():
     """Test the creation of a new model from a parquet file."""
-    path = Path(__file__).parent / "data" / "schemas" / f"{schema_name}.json"
-    schema = Schema.load_file(path)
-    schemas = {schema["name"]: schema}
-    result = GenFactory.generate(schema, "__main__", schemas)
-    assert "class" in result
+    schemas = {}
+    for schema_name in ["clients", "projects", "tasks"]:
+        path = (
+            Path(__file__).parent / "data" / "schemas" / f"{schema_name}.json"
+        )
+        schema = Schema.load_file(path)
+        schemas[schema["name"]] = schema
+
+    for k_schema, v_schema in schemas.items():
+        result = GenFactory.generate(v_schema, "__main__", schemas)
+        assert "class" in result
