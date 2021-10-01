@@ -1,40 +1,40 @@
 {
     "name": "Project",
-    "original-name": "projects",
+    "physical-name": "projects",
     "attributes": {
       "id": {
-        "store-name": "id",
+        "physical-name": "id",
         "dtype": "int",
         "min": 1,
         "count": 30
       },
       "name": {
-        "store-name": "name",
+        "physical-name": "name",
         "dtype": "str",
         "count": 30
       },
       "project_type": {
-        "store-name": "project_type",
+        "physical-name": "project_type",
         "dtype": "str",
         "categories": ["dev", "doc", "design"],
         "count": 30
       },
       "date_start": {
-        "store-name": "date_start",
+        "physical-name": "date_start",
         "dtype": "datetime",
         "min": "2000-01-01 00:00:00",
         "max": "2021-06-30 23:59:59",
         "count": 30
       },
       "date_end": {
-        "store-name": "date_end",
+        "physical-name": "date_end",
         "dtype": "datetime",
         "min": "2000-01-01 00:00:00",
         "max": "2021-06-30 23:59:59",
         "count": 30
       },
       "client_id": {
-        "store-name": "client_id",
+        "physical-name": "client_id",
         "depends-on": "Client.id",
         "dtype": "int",
         "min": 1,

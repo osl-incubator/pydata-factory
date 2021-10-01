@@ -16,7 +16,7 @@ def test_schema_from_parquet(filename):
 
     assert isinstance(schema, dict)
     assert "name" in schema
-    assert "original-name" in schema
+    assert "physical-name" in schema
     assert "attributes" in schema
 
 
@@ -32,7 +32,7 @@ def test_schema_from_sql(filename):
 
     assert isinstance(schema, dict)
     assert "name" in schema
-    assert "original-name" in schema
+    assert "physical-name" in schema
     assert "attributes" in schema
 
 

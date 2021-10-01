@@ -97,13 +97,19 @@ class GenData:
         for k_schema in priorities:
             schema = schemas[k_schema]
             name = schema["name"]
-            original_name = schema["original-name"]
+            physical_name = schema["physical-name"]
             namespace = schema.get("namespace", "")
             class_name = name
 
             storage[class_name] = []
 
             df = Schema.to_dataframe(schema)
+
+            physical_dtypes = {
+                k_attr: v_attr["physical-dtype"]
+                for k_attr, v_attr in schema["attributes"].items()
+                if v_attr.get("physical-dtype")
+            }
 
             for i in range(rows[name]):
                 klass = getattr(lib_tmp, f"{class_name}Factory")
@@ -118,12 +124,12 @@ class GenData:
                 storage[class_name].append(data)
 
             qualified_name = (
-                original_name
+                physical_name
                 if not namespace
-                else f"{namespace}.{original_name}"
+                else f"{namespace}.{physical_name}"
             )
             dfs[qualified_name] = pd.concat(
                 [df, pd.DataFrame(storage[class_name]).drop_duplicates()]
-            )
+            ).astype(physical_dtypes)
 
         return dfs

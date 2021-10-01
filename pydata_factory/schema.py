@@ -22,11 +22,11 @@ def cast_or_null(value, func):
 
 class Schema:
     @staticmethod
-    def get_schema(df, original_name: str, namespace: str = ""):
-        name = get_class_name(original_name, namespace)
+    def get_schema(df, physical_name: str, namespace: str = ""):
+        name = get_class_name(physical_name, namespace)
         schema = {
             "name": name,
-            "original-name": original_name,
+            "physical-name": physical_name,
             "namespace": namespace,
         }
         schema["attributes"] = {}
@@ -34,9 +34,10 @@ class Schema:
         attrs = schema["attributes"]
         for k in df.columns:
             k_new = get_attr_name(k)
-            attrs[k_new] = {"store-db": k}
+            attrs[k_new] = {"physical-name": k}
 
-            dtype = MAPS_FROM_PANDAS_TYPES[str(df[k].dtype)]
+            attrs[k_new]["physical-dtype"] = str(df[k].dtype)
+            dtype = MAPS_FROM_PANDAS_TYPES[attrs[k_new]["physical-dtype"]]
             attrs[k_new]["dtype"] = dtype
 
             if k_new.endswith("_id"):
@@ -111,10 +112,10 @@ class Schema:
 
         target_file = f"{target_dir}/{filename}.json"
 
-        original_name = filename
+        physical_name = filename
 
         df = pd.read_parquet(origin)
-        schema = Schema.get_schema(df, original_name, namespace)
+        schema = Schema.get_schema(df, physical_name, namespace)
 
         with open(target_file, "w") as f:
             json.dump(schema, fp=f, indent=2)
@@ -135,10 +136,10 @@ class Schema:
 
         target_file = f"{target_dir}/{table_name}.json"
 
-        original_name = table_name
+        physical_name = table_name
 
         df = pd.read_sql(f"SELECT * FROM {table_name}", con=engine)
-        schema = Schema.get_schema(df, original_name, namespace)
+        schema = Schema.get_schema(df, physical_name, namespace)
 
         with open(target_file, "w") as f:
             json.dump(schema, fp=f, indent=2)
@@ -146,19 +147,19 @@ class Schema:
         return schema
 
     @staticmethod
-    def get_map_store_attributes(schema: dict) -> dict:
+    def get_map_physical_attributes(schema: dict) -> dict:
         map_attr = {}
         for k_attr, v_attr in schema["attributes"].items():
-            map_attr[k_attr] = v_attr.get("store-name", k_attr)
+            map_attr[k_attr] = v_attr.get("physical-name", k_attr)
         return map_attr
 
     @staticmethod
     def get_qualified_name(schema: dict) -> str:
-        original_name = schema["original-name"]
+        physical_name = schema["physical-name"]
         namespace = schema.get("namespace", "")
 
         return (
-            original_name if not namespace else f"{namespace}.{original_name}"
+            physical_name if not namespace else f"{namespace}.{physical_name}"
         )
 
     @staticmethod

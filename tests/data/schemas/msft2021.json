@@ -1,10 +1,11 @@
 {
   "name": "Msft2021Pydf",
-  "original-name": "msft2021",
+  "physical-name": "msft2021",
   "namespace": "pydf",
   "attributes": {
     "high": {
-      "store-db": "High",
+      "physical-name": "High",
+      "physical-dtype": "float64",
       "dtype": "float",
       "min": 214.50999450683594,
       "max": 271.6499938964844,
@@ -13,7 +14,8 @@
       "count": 124
     },
     "low": {
-      "store-db": "Low",
+      "physical-name": "Low",
+      "physical-dtype": "float64",
       "dtype": "float",
       "min": 211.94000244140625,
       "max": 269.6000061035156,
@@ -22,7 +24,8 @@
       "count": 124
     },
     "open": {
-      "store-db": "Open",
+      "physical-name": "Open",
+      "physical-dtype": "float64",
       "dtype": "float",
       "min": 212.1699981689453,
       "max": 270.69000244140625,
@@ -31,7 +34,8 @@
       "count": 124
     },
     "close": {
-      "store-db": "Close",
+      "physical-name": "Close",
+      "physical-dtype": "float64",
       "dtype": "float",
       "min": 212.25,
       "max": 271.3999938964844,
@@ -40,7 +44,8 @@
       "count": 124
     },
     "volume": {
-      "store-db": "Volume",
+      "physical-name": "Volume",
+      "physical-dtype": "float64",
       "dtype": "float",
       "min": 15751100.0,
       "max": 69870600.0,
@@ -49,7 +54,8 @@
       "count": 124
     },
     "adj_close": {
-      "store-db": "Adj Close",
+      "physical-name": "Adj Close",
+      "physical-dtype": "float64",
       "dtype": "float",
       "min": 210.8707275390625,
       "max": 270.88140869140625,
