@@ -83,7 +83,13 @@ class GenFactory:
 
             v = "None"
 
-            if k_attr == "id":
+            if v_attr.get("__factory__"):
+                v = v_attr.get("__factory__").format(module=module)
+
+                if k_attr.endswith("_id") and v_attr.get("depends-on"):
+                    t = "factory.Factory"
+
+            elif k_attr == "id":
                 v_min = int(col.get("min", 1))
                 v = f"factory.Sequence(lambda n: n + {v_min})"
 
@@ -102,22 +108,19 @@ class GenFactory:
             elif k_attr.endswith("_id") and v_attr.get("depends-on"):
                 t = "factory.Factory"
 
-                if v_attr.get("__factory__"):
-                    v = v_attr.get("__factory__").format(module=module)
-                else:
-                    dep_class, dep_attr = v_attr.get("depends-on").split(".")
-                    dep_attr_ref = context_schemas[dep_class]["attributes"][
-                        dep_attr
-                    ]
+                dep_class, dep_attr = v_attr.get("depends-on").split(".")
+                dep_attr_ref = context_schemas[dep_class]["attributes"][
+                    dep_attr
+                ]
 
-                    id_min = dep_attr_ref.get("min", 1)
-                    id_max = dep_attr_ref.get("max", 9999)
+                id_min = dep_attr_ref.get("min", 1)
+                id_max = dep_attr_ref.get("max", 9999)
 
-                    v = (
-                        f"factory.SubFactory('{module}.{dep_class}Factory', "
-                        "id=factory.LazyAttribute(lambda obj: "
-                        f"random.randint({id_min}, {id_max})))"
-                    )
+                v = (
+                    f"factory.SubFactory('{module}.{dep_class}Factory', "
+                    "id=factory.LazyAttribute(lambda obj: "
+                    f"random.randint({id_min}, {id_max})))"
+                )
 
             elif t == "int":
                 v_min = col.get("min", 0)
